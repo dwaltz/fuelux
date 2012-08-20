@@ -32,7 +32,11 @@ define(function(require) {
 
         this.switches = {
             count: 1,
-            enabled: true
+            enabled: true,
+            spinSpeed: (this.options.spinSpeed === 'medium') ?
+                       300 :
+                       ((this.options.spinSpeed === 'fast') ?
+                       100 : 500)
         };
 
         this.render();
@@ -74,7 +78,7 @@ define(function(require) {
                     divisor = 4;
                 }
 
-                this.switches.timeout = setTimeout($.proxy(function(){this.iterator(type);},this),300/divisor);
+                this.switches.timeout = setTimeout($.proxy(function(){this.iterator(type);},this),this.switches.spinSpeed/divisor);
                 this.switches.count++;
             }
         },
@@ -151,6 +155,7 @@ define(function(require) {
         increment: 1,
         onChange: $.noop,
         holdSpin: true,
+        spinSpeed: 'medium',
         disabled: false
     };
 
