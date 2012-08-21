@@ -11,127 +11,129 @@ define(function(require) {
     var $ = require('jquery');
 
 
-    // PILLBOX CONSTRUCTOR AND PROTOTYPE
+    // SPINNER CONSTRUCTOR AND PROTOTYPE
 
     var Spinner = function (element, options) {
         this.$element = $(element);
         this.options = $.extend({}, $.fn.spinner.defaults, options);
-        this.$element.on('keyup', '.spinner-input', $.proxy(this.change, this));
+        this.$input = this.$element.find('.spinner-input');
+        this.$element.on('keyup', this.$input, $.proxy(this.change, this));
 
-        if(this.options.holdSpin){
-            this.$element.on('mousedown', '.spinner-up', $.proxy(function(){this.startSpin(true);}, this));
-            this.$element.on('mouseup', '.spinner-up', $.proxy(this.stopSpin, this));
-            this.$element.on('mouseout', '.spinner-up', $.proxy(this.stopSpin, this));
-            this.$element.on('mousedown', '.spinner-down', $.proxy(function(){this.startSpin(false);}, this));
-            this.$element.on('mouseup', '.spinner-down', $.proxy(this.stopSpin, this));
-            this.$element.on('mouseout', '.spinner-down', $.proxy(this.stopSpin, this));
-        }else{
-            this.$element.on('click', '.spinner-up', $.proxy(this.increment, this));
-            this.$element.on('click', '.spinner-down', $.proxy(this.decrement, this));
+        if (this.options.hold) {
+            this.$element.on('mousedown', '.spinner-up', $.proxy(function() { this.startSpin(true); } , this));
+            this.$element.on('mouseup', '.spinner-up, .spinner-down', $.proxy(this.stopSpin, this));
+            this.$element.on('mouseout', '.spinner-up, .spinner-down', $.proxy(this.stopSpin, this));
+            this.$element.on('mousedown', '.spinner-down', $.proxy(function() {this.startSpin(false);} , this));
+        } else {
+            this.$element.on('click', '.spinner-up', $.proxy(function() { this.increment(true); } , this));
+            this.$element.on('click', '.spinner-down', $.proxy(function() { this.increment(false); }, this));
         }
 
         this.switches = {
             count: 1,
-            enabled: true,
-            spinSpeed: (this.options.spinSpeed === 'medium') ?
-                       300 :
-                       ((this.options.spinSpeed === 'fast') ?
-                       100 : 500)
+            enabled: true
         };
 
+        if (this.options.speed === 'medium') {
+            this.switches.speed = 300;
+        } else if (this.options.speed === 'fast') {
+            this.switches.speed = 100;
+        } else {
+            this.switches.speed = 500;
+        }
+
         this.render();
+
+        if (this.options.disabled) {
+            this.disable();
+        }
     };
 
     Spinner.prototype = {
         constructor: Spinner,
 
-        render: function(){
-            this.$element.find('.spinner-input').val(this.options.value)
-                                                .attr('maxlength',(this.options.maxValue + '').split('').length)
-                                                ;
+        render: function () {
+            this.$input.val(this.options.value);
+            this.$input.attr('maxlength',(this.options.max + '').split('').length);
         },
 
-        change: function(){
-            this.options.value = this.$element.find('.spinner-input').val()/1;
-            this.options.onChange();
+        change: function () {
+            this.options.value = this.$input.val()/1;
+            this.$element.trigger('change');
         },
 
-        stopSpin: function(){
+        stopSpin: function () {
             clearTimeout(this.switches.timeout);
             this.switches.count = 1;
-            this.options.onChange();
+            this.$element.trigger('change');
         },
 
-        startSpin: function(type){
+        startSpin: function (type) {
 
-            if(!this.options.disabled){
+            if (!this.options.disabled) {
                 var divisor = this.switches.count;
 
-                if(divisor === 1){
+                if (divisor === 1) {
                     this.increment(type);
                     divisor = 1;
-                }else if(divisor < 3){
+                } else if (divisor < 3){
                     divisor = 1.5;
-                }else if(divisor < 8){
+                } else if (divisor < 8){
                     divisor = 2.5;
-                }else{
+                } else {
                     divisor = 4;
                 }
 
-                this.switches.timeout = setTimeout($.proxy(function(){this.iterator(type);},this),this.switches.spinSpeed/divisor);
+                this.switches.timeout = setTimeout($.proxy(function() {this.iterator(type);} ,this),this.switches.speed/divisor);
                 this.switches.count++;
             }
         },
 
-        iterator: function(type){
+        iterator: function (type) {
             this.increment(type);
             this.startSpin(type);
         },
 
-        increment: function(dir){
-            var curValue = this.options.value,
-                limValue = dir ? this.options.maxValue : this.options.minValue
-                ;
+        increment: function (dir) {
+            var curValue = this.options.value;
+            var limValue = dir ? this.options.max : this.options.min;
 
-            if((dir ? curValue < limValue : curValue > limValue)){
-                var newVal = curValue + (dir ? 1 : -1)*this.options.increment;
+            if ((dir ? curValue < limValue : curValue > limValue)) {
+                var newVal = curValue + (dir ? 1 : -1) * this.options.increment;
 
-                if(dir ? newVal > limValue : newVal < limValue){
-                    this.setValue(limValue);
-                }else{
-                    this.setValue(newVal);
+                if (dir ? newVal > limValue : newVal < limValue) {
+                    this.value(limValue);
+                } else {
+                    this.value(newVal);
                 }
             }
         },
 
-        getValue: function(){
-            return this.options.value;
+        value: function (value) {
+            if (value) {
+                this.options.value = value;
+                this.$input.val(value);
+                return this;
+            } else {
+                return this.options.value;
+            }
         },
 
-        setValue: function (value) {
-            this.options.value = value;
-            this.$element.find('.spinner-input').val(value);
-        },
-
-        disable: function() {
+        disable: function () {
             this.options.disabled = true;
-            this.$element.find('.spinner-input').attr('disabled','');
+            this.$input.attr('disabled','');
             this.$element.find('button').addClass('disabled');
         },
 
-        enable: function() {
+        enable: function () {
             this.options.disabled = false;
-            this.$element.find('.spinner-input').removeAttr("disabled");
+            this.$input.removeAttr("disabled");
             this.$element.find('button').removeClass('disabled');
-        },
-
-        destroy: function() {
-            this.$element.remove();
         }
     };
 
 
-    // PILLBOX PLUGIN DEFINITION
+    // SPINNER PLUGIN DEFINITION
 
     $.fn.spinner = function (option,value) {
         var methodReturn;
@@ -150,12 +152,11 @@ define(function(require) {
 
     $.fn.spinner.defaults = {
         value: 1,
-        minValue: 1,
-        maxValue: 999,
+        min: 1,
+        max: 999,
         increment: 1,
-        onChange: $.noop,
-        holdSpin: true,
-        spinSpeed: 'medium',
+        hold: true,
+        speed: 'medium',
         disabled: false
     };
 

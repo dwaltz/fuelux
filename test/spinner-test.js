@@ -28,11 +28,11 @@ require(['jquery', 'fuelux/spinner'], function($) {
         var $spinner = $( spinnerHTML).spinner();
 
         //returning default value
-        equal($spinner.spinner('getValue'), 1, 'spinner returns selected item');
+        equal($spinner.spinner('value'), 1, 'spinner returns selected item');
 
         //set value
-        $spinner.spinner('setValue',2);
-        equal($spinner.spinner('getValue'), 2, 'spinner sets value');
+        $spinner.spinner('value',2);
+        equal($spinner.spinner('value'), 2, 'spinner sets value');
 
         //disable
         $spinner.spinner('disable');
@@ -44,11 +44,11 @@ require(['jquery', 'fuelux/spinner'], function($) {
 
         //increment positive
         $spinner.spinner('increment',true);
-        equal($spinner.spinner('getValue'), 3, 'spinner increments positive');
+        equal($spinner.spinner('value'), 3, 'spinner increments positive');
 
         //increment nagative
         $spinner.spinner('increment',false);
-        equal($spinner.spinner('getValue'), 2, 'spinner increments negative');
+        equal($spinner.spinner('value'), 2, 'spinner increments negative');
 
     });
 
