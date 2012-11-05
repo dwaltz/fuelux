@@ -78,8 +78,10 @@ require(['jquery', 'fuelux/tree'], function($) {
 
 			$tree.tree('selectItem',$tree.find('.tree-item:eq(1)'));
 			equal(data.length, 1, 'Single item selected');
+			equal($tree.tree('selected').selected.length, 1, 'Return single selected value');
 			$tree.tree('selectItem',$tree.find('.tree-item:eq(2)'));
 			equal(data.length, 2, 'Double item selected');
+			equal($tree.tree('selected').selected.length, 2, 'Return multiple selected values');
 			$tree.tree('selectItem',$tree.find('.tree-item:eq(1)'));
 			equal(data.length, 1, 'Duplicate selection');
 

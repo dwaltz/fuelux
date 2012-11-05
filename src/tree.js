@@ -90,13 +90,13 @@ define(function(require) {
 			} else {
 				$el.addClass ('tree-selected');
 				$el.find('i').removeClass('tree-dot').addClass('icon-ok');
-				if ( this.options.multiSelect ) {
+				if (this.options.multiSelect) {
 					data.push( $el.data() );
 				}
 			}
 
 			if( data ) {
-				this.$element.trigger('select', {selected: data} );
+				this.$element.trigger('select', data.length ? {selected: data} : data );
 			}
 
 		},
@@ -130,11 +130,28 @@ define(function(require) {
 
 				this.$element.trigger('close', $el.data());
 			}
+		},
+
+		selected: function () {
+			var $sel = this.$element.find('.tree-selected');
+
+			if($sel.length === 0) {
+				return;
+			}
+			if(this.options.multiSelect) {
+				var data = [];
+				$.each( $sel, function (index,value) {
+					data.push($(value).data());
+				});
+				return {selected: data};
+			} else {
+				return $sel.data();
+			}
 		}
 	};
 
 
-	// SPINNER PLUGIN DEFINITION
+	// TREE PLUGIN DEFINITION
 
 	$.fn.tree = function (option, value) {
 		var methodReturn;
