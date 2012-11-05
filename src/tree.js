@@ -11,7 +11,7 @@ define(function(require) {
 	var $ = require('jquery');
 
 
-	// SPINNER CONSTRUCTOR AND PROTOTYPE
+	// TREE CONSTRUCTOR AND PROTOTYPE
 
 	var Tree = function (element, options) {
 		this.$element = $(element);
@@ -118,7 +118,11 @@ define(function(require) {
 
 				this.$element.trigger('open', $el.data());
 			} else {
-				$par.find('.tree-folder-content:eq(0)').hide();
+				if(this.options.folderRefresh) {
+					$par.find('.tree-folder-content:eq(0)').empty();
+				} else {
+					$par.find('.tree-folder-content:eq(0)').hide();
+				}
 
 				$par.find('.icon-folder-open:eq(0)')
 					.removeClass('icon-folder-open')
@@ -149,7 +153,8 @@ define(function(require) {
 
 	$.fn.tree.defaults = {
 		multiSelect: false,
-		loadingHTML: '<div>Loading...</div>'
+		loadingHTML: '<div>Loading...</div>',
+		folderRefresh: false
 	};
 
 	$.fn.tree.Constructor = Tree;

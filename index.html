@@ -98,7 +98,7 @@
 			var dataSourceTree = new DataSourceTree({
 				data: [
 					{ name:'Test Folder 1', type:'folder', additionalParameters:{ id:'F1' } },
-					{ name:'Test Folder 1', type:'folder', additionalParameters:{ id:'F2' } },
+					{ name:'Test Folder 2', type:'folder', additionalParameters:{ id:'F2' } },
 					{ name:'Test Item 1', type:'item', additionalParameters:{ id:'I1' } },
 					{ name:'Test Item 2', type:'item', additionalParameters:{ id:'I2' } }
 				],
@@ -108,7 +108,8 @@
 			$('#ex-tree').tree({
 				dataSource: dataSourceTree,
 				loadingHTML: '<div class="static-loader">Loading...</div>',
-				multiSelect: true
+				multiSelect: true,
+				folderRefresh: true
 			});
 
 			$('#ex-tree').on('select',function ( e, info ) {
