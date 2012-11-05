@@ -16,75 +16,97 @@ require(['jquery', 'fuelux/tree'], function($) {
 
 	asyncTest("Tree should be populated by items on initialization", function () {
 
-		var $tree = $( treeHTML ).tree({ dataSource: stubDataSource });
+		var $tree = $(treeHTML).tree({ dataSource: stubDataSource }).on('loaded', function () {
 
-		setTimeout(function () {
 			equal($tree.find('.tree-folder').length, 3, 'Initial set of folders have been added');
 			equal($tree.find('.tree-item').length, 3, 'Initial set of items have been added');
 
-			$tree.tree('selectFolder',$tree.find('.tree-folder:eq(1)')[0]);
-
 			start();
-		},0);
+		});
 
 	});
 
 	asyncTest("Folders should be populated when folder is clicked", function () {
 
-		var $tree = $( treeHTML ).tree({ dataSource: stubDataSource });
+		var $tree = $(treeHTML).tree({ dataSource: stubDataSource }).on('loaded', function () {
 
-		setTimeout(function () {
 			var $folder = $tree.find('.tree-folder:eq(1)');
 			var event = 0;
 
-			$tree.on('open',function () {
+			$tree.off('loaded');
+
+			$tree.on('open', function () {
 				event++;
 			});
 
-			$tree.on('close',function () {
+			$tree.on('close', function () {
 				event++;
 			});
 
-			$tree.tree('selectFolder',$folder[0]);
+			$tree.tree('selectFolder', $folder[0]);
 
-			setTimeout(function () {
+			$tree.on('loaded', function() {
+				$tree.off('loaded');
+
 				equal($folder.find('.tree-folder').length, 2, 'Folders have populated');
 				equal($folder.find('.tree-item').length, 2, 'Items have populated');
 
 				equal(event, 1, 'Open event triggered');
 
-				$tree.tree('selectFolder',$folder[0]);
-				setTimeout(function () {
+				$tree.tree('selectFolder', $folder[0]);
+				$tree.on('loaded', function() {
 					equal(event, 2, 'Close event triggered');
 					start();
-				},0);
-			},0);
-		},0);
+				});
+			});
+
+		});
 
 	});
 
-	asyncTest("Multiple item triggers work as designed", function () {
+	asyncTest("Single item selection works as designed", function () {
 
-		var $tree = $( treeHTML ).tree({ dataSource: stubDataSource, multiSelect: true });
+		var $tree = $(treeHTML).tree({ dataSource: stubDataSource }).on('loaded',function() {
 
-		setTimeout(function () {
-			var event = 0;
 			var data;
 
-			$tree.on('select',function (e, items) {
-				event++;
-				data = items.selected;
+			$tree.on('select', function (e, items) {
+				data = items.info;
 			});
 
-			$tree.tree('selectItem',$tree.find('.tree-item:eq(1)'));
+			$tree.tree('selectItem', $tree.find('.tree-item:eq(1)'));
 			equal(data.length, 1, 'Single item selected');
-			$tree.tree('selectItem',$tree.find('.tree-item:eq(2)'));
+			equal($tree.tree('selectedItems').length, 1, 'Return single selected value');
+			$tree.tree('selectItem', $tree.find('.tree-item:eq(2)'));
+			equal(data.length, 1, 'New single item selected');
+			equal($tree.tree('selectedItems').length, 1, 'Return new single selected value');
+
+			start();
+		});
+
+	});
+
+	asyncTest("Multiple item selection works as designed", function () {
+
+		var $tree = $(treeHTML).tree({ dataSource: stubDataSource, multiSelect: true }).on('loaded',function() {
+
+			var data;
+
+			$tree.on('select', function (e, items) {
+				data = items.info;
+			});
+
+			$tree.tree('selectItem', $tree.find('.tree-item:eq(1)'));
+			equal(data.length, 1, 'Single item selected');
+			equal($tree.tree('selectedItems').length, 1, 'Return single selected value');
+			$tree.tree('selectItem', $tree.find('.tree-item:eq(2)'));
 			equal(data.length, 2, 'Double item selected');
-			$tree.tree('selectItem',$tree.find('.tree-item:eq(1)'));
+			equal($tree.tree('selectedItems').length, 2, 'Return multiple selected values');
+			$tree.tree('selectItem', $tree.find('.tree-item:eq(1)'));
 			equal(data.length, 1, 'Duplicate selection');
 
 			start();
-		},0);
+		});
 
 	});
 
@@ -102,10 +124,10 @@ require(['jquery', 'fuelux/tree'], function($) {
 			setTimeout(function () {
 				callback({
 					data: [
-						{ name:'Test Folder 1', type:'folder', additionalParameters:{ id:'F1' } },
-						{ name:'Test Folder 1', type:'folder', additionalParameters:{ id:'F2' } },
-						{ name:'Test Item 1', type:'item', additionalParameters:{ id:'I1' } },
-						{ name:'Test Item 2', type:'item', additionalParameters:{ id:'I2' } }
+						{ name: 'Test Folder 1', type: 'folder', additionalParameters: { id: 'F1' } },
+						{ name: 'Test Folder 1', type: 'folder', additionalParameters: { id: 'F2' } },
+						{ name: 'Test Item 1', type: 'item', additionalParameters: { id: 'I1' } },
+						{ name: 'Test Item 2', type: 'item', additionalParameters: { id: 'I2' } }
 					]
 				});
 			}, 0);
