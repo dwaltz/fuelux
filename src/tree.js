@@ -18,7 +18,7 @@ define(function(require) {
 		this.options = $.extend({}, $.fn.tree.defaults, options);
 
 		this.$element.on('click', '.tree-item', $.proxy( function(ev) { this.selectItem(ev.currentTarget); } ,this));
-		this.$element.on('click', '.tree-folder-header', $.proxy( function(ev) { this.selectFolder(ev.currentTarget); } ,this));
+		this.$element.on('click', '.tree-folder-header', $.proxy( function(ev) { this.selectFolder(ev.currentTarget); }, this));
 
 		this.render();
 	};
@@ -35,7 +35,7 @@ define(function(require) {
 			var loader = $el.parent().find('.tree-loader:eq(0)');
 
 			loader.show();
-			this.options.dataSource.data( $el.data(), function (items) {
+			this.options.dataSource.data($el.data(), function (items) {
 				loader.hide();
 
 				$.each( items.data, function(index, value) {
@@ -58,35 +58,32 @@ define(function(require) {
 						$el.append($entity);
 					}
 				});
+
+				self.$element.trigger('loaded');
 			});
 		},
 
 		selectItem: function (el) {
 			var $el = $(el);
 			var $all = this.$element.find('.tree-selected');
-			var data = this.options.multiSelect ? [] : false;
+			var data = [];
 
-			if (!this.options.multiSelect) {
-				if( $all[0] !== $el[0]) {
-					$all.removeClass('tree-selected')
-						.find('i').removeClass('icon-ok').addClass('tree-dot');
-					data = $el.data();
-				}
-			} else {
+			if (this.options.multiSelect) {
 				$.each($all, function(index, value) {
 					var $val = $(value);
-					if( $val[0] !== $el[0] ) {
+					if($val[0] !== $el[0]) {
 						data.push( $(value).data() );
 					}
 				});
+			} else if ($all[0] !== $el[0]) {
+				$all.removeClass('tree-selected')
+					.find('i').removeClass('icon-ok').addClass('tree-dot');
+				data.push($el.data());
 			}
 
-			if( $el.hasClass('tree-selected') ) {
-				$el.removeClass ('tree-selected');
+			if($el.hasClass('tree-selected')) {
+				$el.removeClass('tree-selected');
 				$el.find('i').removeClass('icon-ok').addClass('tree-dot');
-				if ( this.options.multiSelect && !data.length ) {
-					data = false;
-				}
 			} else {
 				$el.addClass ('tree-selected');
 				$el.find('i').removeClass('tree-dot').addClass('icon-ok');
@@ -95,8 +92,8 @@ define(function(require) {
 				}
 			}
 
-			if( data ) {
-				this.$element.trigger('select', data.length ? {selected: data} : data );
+			if(data.length) {
+				this.$element.trigger('select', {info: data});
 			}
 
 		},
@@ -118,10 +115,10 @@ define(function(require) {
 
 				this.$element.trigger('open', $el.data());
 			} else {
-				if(this.options.folderRefresh) {
-					$par.find('.tree-folder-content:eq(0)').empty();
-				} else {
+				if(this.options.cacheItems) {
 					$par.find('.tree-folder-content:eq(0)').hide();
+				} else {
+					$par.find('.tree-folder-content:eq(0)').empty();
 				}
 
 				$par.find('.icon-folder-open:eq(0)')
@@ -132,21 +129,17 @@ define(function(require) {
 			}
 		},
 
-		selected: function () {
+		selectedItems: function () {
 			var $sel = this.$element.find('.tree-selected');
+			var data = [];
 
 			if($sel.length === 0) {
 				return;
 			}
-			if(this.options.multiSelect) {
-				var data = [];
-				$.each( $sel, function (index,value) {
-					data.push($(value).data());
-				});
-				return {selected: data};
-			} else {
-				return $sel.data();
-			}
+			$.each($sel, function (index, value) {
+				data.push($(value).data());
+			});
+			return data;
 		}
 	};
 
@@ -171,7 +164,7 @@ define(function(require) {
 	$.fn.tree.defaults = {
 		multiSelect: false,
 		loadingHTML: '<div>Loading...</div>',
-		folderRefresh: false
+		cacheItems: true
 	};
 
 	$.fn.tree.Constructor = Tree;
