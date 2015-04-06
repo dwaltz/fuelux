@@ -24,13 +24,11 @@
 
 	// -- BEGIN MODULE CODE HERE --
 
-	var old = $.fn.loader;
-
 	// LOADER CONSTRUCTOR AND PROTOTYPE
 
-	var Loader = function (element, options) {
+	var Loader = function (element, options, defaults) {
 		this.$element = $(element);
-		this.options = $.extend({}, $.fn.loader.defaults, options);
+		this.options = $.extend({}, defaults, options);
 
 		this.begin = (this.$element.is('[data-begin]')) ? parseInt(this.$element.attr('data-begin'), 10) : 1;
 		this.delay = (this.$element.is('[data-delay]')) ? parseFloat(this.$element.attr('data-delay')) : 150;
@@ -121,46 +119,24 @@
 
 	// LOADER PLUGIN DEFINITION
 
-	$.fn.loader = function (option) {
-		var args = Array.prototype.slice.call(arguments, 1);
+	return function(element, options) {
 		var methodReturn;
 
-		var $set = this.each(function () {
-			var $this = $(this);
-			var data = $this.data('fu.loader');
-			var options = typeof option === 'object' && option;
+		var $this = element;
+		var data = $this.data('fu.loader');
 
-			if (!data) {
-				$this.data('fu.loader', (data = new Loader(this, options)));
-			}
+		if (!data) {
+			$this.data('fu.loader', (data = new Loader($this, options,{
 
-			if (typeof option === 'string') {
-				methodReturn = data[option].apply(data, args);
-			}
-		});
+			})));
+		}
 
-		return (methodReturn === undefined) ? $set : methodReturn;
+		if (typeof option === 'string') {
+			methodReturn = data[option].apply(data, options);
+		}
+
+		return methodReturn;
 	};
-
-	$.fn.loader.defaults = {};
-
-	$.fn.loader.Constructor = Loader;
-
-	$.fn.loader.noConflict = function () {
-		$.fn.loader = old;
-		return this;
-	};
-
-	// INIT LOADER ON DOMCONTENTLOADED
-
-	$(function () {
-		$('[data-initialize=loader]').each(function () {
-			var $this = $(this);
-			if (!$this.data('fu.loader')) {
-				$this.loader($this.data());
-			}
-		});
-	});
 
 	// -- BEGIN UMD WRAPPER AFTERWORD --
 }));

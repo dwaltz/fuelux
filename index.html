@@ -33,7 +33,10 @@
 					bootstrap: 'bower_components/bootstrap/dist/js/bootstrap',
 					//moment: 'bower_components/moment/min/moment-with-locales',
 					//fuelux: 'js'
-					tree: 'js/tree'
+					tree: 'js/tree',
+					combobox: 'js/combobox',
+					infinitescroll: 'js/infinite-scroll',
+					loader: 'js/loader'
 				},
 				shim: {
 					'bootstrap': {
@@ -68,6 +71,20 @@
 				</button>
 			</li>
 		</ul>
+
+		<div class="input-group input-append dropdown combobox" id="myCombobox">
+			<input type="text" class="form-control">
+			<div class="input-group-btn">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+				<ul class="dropdown-menu dropdown-menu-right">
+					<li data-value="1"><a href="#">One</a></li>
+					<li data-value="2"><a href="#">Two</a></li>
+					<li data-value="3"><a href="#">Three</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="infinitescroll" id="myInfiniteScroll1" style="margin-top: 20px;border: 1px solid #ccc; border-radius: 4px; float: left; height: 200px; padding: 6px 10px; width: 48%;"></div>
 
 	</div>
 </body>

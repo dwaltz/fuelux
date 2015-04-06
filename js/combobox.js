@@ -24,14 +24,12 @@
 
 	// -- BEGIN MODULE CODE HERE --
 
-	var old = $.fn.combobox;
-
 
 	// COMBOBOX CONSTRUCTOR AND PROTOTYPE
 
-	var Combobox = function (element, options) {
+	var Combobox = function (element, options, defaults) {
 		this.$element = $(element);
-		this.options = $.extend({}, $.fn.combobox.defaults, options);
+		this.options = $.extend({}, defaults, options);
 
 		this.$dropMenu = this.$element.find('.dropdown-menu');
 		this.$input = this.$element.find('input');
@@ -199,56 +197,24 @@
 
 	// COMBOBOX PLUGIN DEFINITION
 
-	$.fn.combobox = function (option) {
-		var args = Array.prototype.slice.call(arguments, 1);
+	return function(element, options) {
 		var methodReturn;
 
-		var $set = this.each(function () {
-			var $this = $(this);
-			var data = $this.data('fu.combobox');
-			var options = typeof option === 'object' && option;
+		var $this = element;
+		var data = $this.data('fu.combobox');
 
-			if (!data) {
-				$this.data('fu.combobox', (data = new Combobox(this, options)));
-			}
-
-			if (typeof option === 'string') {
-				methodReturn = data[option].apply(data, args);
-			}
-		});
-
-		return (methodReturn === undefined) ? $set : methodReturn;
-	};
-
-	$.fn.combobox.defaults = {
-		autoResizeMenu: true
-	};
-
-	$.fn.combobox.Constructor = Combobox;
-
-	$.fn.combobox.noConflict = function () {
-		$.fn.combobox = old;
-		return this;
-	};
-
-	// DATA-API
-
-	$(document).on('mousedown.fu.combobox.data-api', '[data-initialize=combobox]', function (e) {
-		var $control = $(e.target).closest('.combobox');
-		if (!$control.data('fu.combobox')) {
-			$control.combobox($control.data());
+		if (!data) {
+			$this.data('fu.combobox', (data = new Combobox($this, options, {
+				autoResizeMenu: true
+			})));
 		}
-	});
 
-	// Must be domReady for AMD compatibility
-	$(function () {
-		$('[data-initialize=combobox]').each(function () {
-			var $this = $(this);
-			if (!$this.data('fu.combobox')) {
-				$this.combobox($this.data());
-			}
-		});
-	});
+		if (typeof option === 'string') {
+			methodReturn = data[option].apply(data, options);
+		}
+
+		return methodReturn;
+	};
 
 	// -- BEGIN UMD WRAPPER AFTERWORD --
 }));

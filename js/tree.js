@@ -26,9 +26,9 @@
 
 	// TREE CONSTRUCTOR AND PROTOTYPE
 
-	var Tree = function Tree(element, options) {
+	var Tree = function Tree(element, options, defaults) {
 		this.$element = $(element);
-		this.options = $.extend({}, this.defaults, options);
+		this.options = $.extend({}, defaults, options);
 
 		if (this.options.itemSelect) {
 			this.$element.on('click.fu.tree', '.tree-item', $.proxy(function (ev) {
@@ -479,8 +479,7 @@
 		var data = $this.data('fu.tree');
 
 		if (!data) {
-			$this.data('fu.tree', (data = new Tree($this, options)));
-			data.defaults = {
+			$this.data('fu.tree', (data = new Tree($this, options, {
 				dataSource: function dataSource(options, callback) {},
 				multiSelect: false,
 				cacheItems: true,
@@ -488,7 +487,7 @@
 				itemSelect: true,
 				ignoreRedundantOpens: false,
 				disclosuresUpperLimit: 0
-			}
+			})));
 		}
 
 		if (typeof option === 'string') {
@@ -497,35 +496,6 @@
 
 		return methodReturn;
 	};
-
-	/*$.fn.tree = function tree(option) {
-	 var args = Array.prototype.slice.call(arguments, 1);
-	 var methodReturn;
-
-	 var $set = this.each(function () {
-	 var $this = $(this);
-	 var data = $this.data('fu.tree');
-	 var options = typeof option === 'object' && option;
-
-	 if (!data) {
-	 $this.data('fu.tree', (data = new Tree(this, options)));
-	 }
-
-	 if (typeof option === 'string') {
-	 methodReturn = data[option].apply(data, args);
-	 }
-	 });
-
-	 return (methodReturn === undefined) ? $set : methodReturn;
-	 };*/
-
-	//$.fn.tree.Constructor = Tree;
-
-	/*$.fn.tree.noConflict = function () {
-	 $.fn.tree = old;
-	 return this;
-	 };*/
-
 
 	// NO DATA-API DUE TO NEED OF DATA-SOURCE
 

@@ -14,24 +14,22 @@
 (function (factory) {
 	if (typeof define === 'function' && define.amd) {
 		// if AMD loader is available, register as an anonymous module.
-		define(['jquery', 'fuelux/loader'], factory);
+		define(['jquery', 'loader'], factory);
 	} else {
 		// OR use browser globals if AMD is not present
 		factory(jQuery);
 	}
-}(function ($) {
+}(function ($, loader) {
 	// -- END UMD WRAPPER PREFACE --
 
 	// -- BEGIN MODULE CODE HERE --
 
-	var old = $.fn.infinitescroll;
-
 	// INFINITE SCROLL CONSTRUCTOR AND PROTOTYPE
 
-	var InfiniteScroll = function (element, options) {
+	var InfiniteScroll = function (element, options, defaults) {
 		this.$element = $(element);
 		this.$element.addClass('infinitescroll');
-		this.options = $.extend({}, $.fn.infinitescroll.defaults, options);
+		this.options = $.extend({}, defaults, options);
 
 		this.curScrollTop = this.$element.scrollTop();
 		this.curPercentage = this.getPercentage();
@@ -94,7 +92,7 @@
 				};
 				var $loader = $('<div class="loader"></div>');
 				load.append($loader);
-				$loader.loader();
+				loader($loader,{});
 				if (self.options.dataSource) {
 					self.options.dataSource(helpers, function (resp) {
 						var end;
@@ -144,38 +142,25 @@
 
 	// INFINITE SCROLL PLUGIN DEFINITION
 
-	$.fn.infinitescroll = function (option) {
-		var args = Array.prototype.slice.call(arguments, 1);
+	return function(element, options) {
 		var methodReturn;
 
-		var $set = this.each(function () {
-			var $this = $(this);
-			var data = $this.data('fu.infinitescroll');
-			var options = typeof option === 'object' && option;
+		var $this = element;
+		var data = $this.data('fu.infinitescroll');
 
-			if (!data) {
-				$this.data('fu.infinitescroll', (data = new InfiniteScroll(this, options)));
-			}
+		if (!data) {
+			$this.data('fu.infinitescroll', (data = new InfiniteScroll($this, options, {
+				dataSource: null,
+				hybrid: false,//can be true or an object with structure: { 'label': (markup or jQuery obj) }
+				percentage: 0//percentage scrolled to the bottom before more is loaded
+			})));
+		}
 
-			if (typeof option === 'string') {
-				methodReturn = data[option].apply(data, args);
-			}
-		});
+		if (typeof option === 'string') {
+			methodReturn = data[option].apply(data, options);
+		}
 
-		return (methodReturn === undefined) ? $set : methodReturn;
-	};
-
-	$.fn.infinitescroll.defaults = {
-		dataSource: null,
-		hybrid: false,//can be true or an object with structure: { 'label': (markup or jQuery obj) }
-		percentage: 95//percentage scrolled to the bottom before more is loaded
-	};
-
-	$.fn.infinitescroll.Constructor = InfiniteScroll;
-
-	$.fn.infinitescroll.noConflict = function () {
-		$.fn.infinitescroll = old;
-		return this;
+		return methodReturn;
 	};
 
 	// NO DATA-API DUE TO NEED OF DATA-SOURCE

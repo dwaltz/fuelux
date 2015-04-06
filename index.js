@@ -1,5 +1,12 @@
 define(function (require) {
+
+	require('bootstrap');
+
+	var data = require('data');
+
 	var tree   = require('tree');
+	var combobox = require('combobox');
+	var infinitescroll = require('infinitescroll');
 
 
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,4 +83,19 @@ define(function (require) {
 		}});
 	}
 	myTreeInit();
+
+	combobox($('#myCombobox'),{});
+
+	infinitescroll($('#myInfiniteScroll1'), {
+		dataSource: function (helpers, callback) {
+
+			// call and simulate latency
+			setTimeout(function () {
+				// from data.js
+				callback({
+					content: data.infiniteScroll.content
+				});
+			}, data.infiniteScroll.delays[Math.floor(Math.random() * 4)]);
+		}
+	});
 });
