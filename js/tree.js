@@ -24,13 +24,11 @@
 
 	// -- BEGIN MODULE CODE HERE --
 
-	var old = $.fn.tree;
-
 	// TREE CONSTRUCTOR AND PROTOTYPE
 
 	var Tree = function Tree(element, options) {
 		this.$element = $(element);
-		this.options = $.extend({}, $.fn.tree.defaults, options);
+		this.options = $.extend({}, this.defaults, options);
 
 		if (this.options.itemSelect) {
 			this.$element.on('click.fu.tree', '.tree-item', $.proxy(function (ev) {
@@ -79,6 +77,7 @@
 			var treeData = $parent.data();
 
 			loader.removeClass('hide hidden'); // hide is deprecated
+			console.log(this.options);
 			this.options.dataSource(treeData ? treeData : {}, function (items) {
 				loader.addClass('hidden');
 
@@ -373,9 +372,9 @@
 						reportedOpened: reportedOpened
 					});
 					/*
-					* Unbind the `openReported` event. `discloseAll` may be running and we want to reset this
-					* method for the next iteration.
-					*/
+					 * Unbind the `openReported` event. `discloseAll` may be running and we want to reset this
+					 * method for the next iteration.
+					 */
 					self.$element.off('loaded.fu.tree', self.$element, openReported);
 				}
 			};
@@ -390,10 +389,10 @@
 		},
 
 		/**
-		* Disclose all will keep listening for `loaded.fu.tree` and if `$(tree-el).data('ignore-disclosures-limit')`
-		* is `true` (defaults to `true`) it will attempt to disclose any new closed folders than were
-		* loaded in during the last disclosure.
-		*/
+		 * Disclose all will keep listening for `loaded.fu.tree` and if `$(tree-el).data('ignore-disclosures-limit')`
+		 * is `true` (defaults to `true`) it will attempt to disclose any new closed folders than were
+		 * loaded in during the last disclosure.
+		 */
 		discloseAll: function discloseAll() {
 			var self = this;
 
@@ -414,14 +413,14 @@
 					});
 
 					/*
-					* If you've exceeded the limit, the loop will be killed unless you
-					* explicitly ignore the limit and start the loop again:
-					*
-					*    $tree.one('exceededDisclosuresLimit.fu.tree', function () {
-					*        $tree.data('ignore-disclosures-limit', true);
-					*        $tree.tree('discloseAll');
-					*    });
-					*/
+					 * If you've exceeded the limit, the loop will be killed unless you
+					 * explicitly ignore the limit and start the loop again:
+					 *
+					 *    $tree.one('exceededDisclosuresLimit.fu.tree', function () {
+					 *        $tree.data('ignore-disclosures-limit', true);
+					 *        $tree.tree('discloseAll');
+					 *    });
+					 */
 					if (!self.$element.data('ignore-disclosures-limit')) {
 						return;
 					}
@@ -431,24 +430,24 @@
 				self.$element.data('disclosures', self.$element.data('disclosures') + 1);
 
 				/*
-				* A new branch that is closed might be loaded in, make sure those get handled too.
-				* This attachment needs to occur before calling `discloseVisible` to make sure that
-				* if the execution of `discloseVisible` happens _super fast_ (as it does in our QUnit tests
-				* this will still be called. However, make sure this only gets called _once_, because
-				* otherwise, every single time we go through this loop, _another_ event will be bound
-				* and then when the trigger happens, this will fire N times, where N equals the number
-				* of recursive `discloseAll` executions (instead of just one)
-				*/
+				 * A new branch that is closed might be loaded in, make sure those get handled too.
+				 * This attachment needs to occur before calling `discloseVisible` to make sure that
+				 * if the execution of `discloseVisible` happens _super fast_ (as it does in our QUnit tests
+				 * this will still be called. However, make sure this only gets called _once_, because
+				 * otherwise, every single time we go through this loop, _another_ event will be bound
+				 * and then when the trigger happens, this will fire N times, where N equals the number
+				 * of recursive `discloseAll` executions (instead of just one)
+				 */
 				self.$element.one('disclosedVisible.fu.tree', function () {
 					self.discloseAll();
 				});
 
 				/*
-				* If the page is very fast, calling this first will cause `disclosedVisible.fu.tree` to not
-				* be bound in time to be called, so, we need to call this last so that the things bound
-				* and triggered above can have time to take place before the next execution of the
-				* `discloseAll` method.
-				*/
+				 * If the page is very fast, calling this first will cause `disclosedVisible.fu.tree` to not
+				 * be bound in time to be called, so, we need to call this last so that the things bound
+				 * and triggered above can have time to take place before the next execution of the
+				 * `discloseAll` method.
+				 */
 				self.discloseVisible();
 			} else {
 				self.$element.trigger('disclosedAll.fu.tree', {
@@ -473,71 +472,59 @@
 
 	// TREE PLUGIN DEFINITION
 
-	$.fn.tree = function tree(option) {
-		var args = Array.prototype.slice.call(arguments, 1);
+	return function(element, options) {
 		var methodReturn;
 
-		var $set = this.each(function () {
-			var $this = $(this);
-			var data = $this.data('fu.tree');
-			var options = typeof option === 'object' && option;
+		var $this = element;
+		var data = $this.data('fu.tree');
 
-			if (!data) {
-				$this.data('fu.tree', (data = new Tree(this, options)));
+		if (!data) {
+			$this.data('fu.tree', (data = new Tree($this, options)));
+			data.defaults = {
+				dataSource: function dataSource(options, callback) {},
+				multiSelect: false,
+				cacheItems: true,
+				folderSelect: true,
+				itemSelect: true,
+				ignoreRedundantOpens: false,
+				disclosuresUpperLimit: 0
 			}
+		}
 
-			if (typeof option === 'string') {
-				methodReturn = data[option].apply(data, args);
-			}
-		});
+		if (typeof option === 'string') {
+			methodReturn = data[option].apply(data, options);
+		}
 
-		return (methodReturn === undefined) ? $set : methodReturn;
+		return methodReturn;
 	};
 
-	$.fn.tree.defaults = {
-		dataSource: function dataSource(options, callback) {},
-		multiSelect: false,
-		cacheItems: true,
-		folderSelect: true,
-		itemSelect: true,
-		/*
-		* Calling "open" on something, should do that. However, the current API
-		* instead treats "open" as a "toggle" and will close a folder that is open
-		* if you call `openFolder` on it. Setting `ignoreRedundantOpens` to `true`
-		* will make the folder instead ignore the redundant call and stay open.
-		* This allows you to fix the API until 3.7.x when we can deprecate the switch
-		* and make `openFolder` behave correctly by default.
-		*/
-		ignoreRedundantOpens: false,
-		/*
-		* How many times `discloseAll` should be called before a stopping and firing
-		* an `exceededDisclosuresLimit` event. You can force it to continue by
-		* listening for this event, setting `ignore-disclosures-limit` to `true` and
-		* starting `discloseAll` back up again. This lets you make more decisions
-		* about if/when/how/why/how many times `discloseAll` will be started back
-		* up after it exceeds the limit.
-		*
-		*    $tree.one('exceededDisclosuresLimit.fu.tree', function () {
-		*        $tree.data('ignore-disclosures-limit', true);
-		*        $tree.tree('discloseAll');
-		*    });
-		*
-		* `disclusuresUpperLimit` defaults to `0`, so by default this trigger
-		* will never fire. The true hard the upper limit is the browser's
-		* ability to load new items (i.e. it will keep loading until the browser
-		* falls over and dies). On the Fuel UX `index.html` page, the point at
-		* which the page became super slow (enough to seem almost unresponsive)
-		* was `4`, meaning 256 folders had been opened, and 1024 were attempting to open.
-		*/
-		disclosuresUpperLimit: 0
-	};
+	/*$.fn.tree = function tree(option) {
+	 var args = Array.prototype.slice.call(arguments, 1);
+	 var methodReturn;
 
-	$.fn.tree.Constructor = Tree;
+	 var $set = this.each(function () {
+	 var $this = $(this);
+	 var data = $this.data('fu.tree');
+	 var options = typeof option === 'object' && option;
 
-	$.fn.tree.noConflict = function () {
-		$.fn.tree = old;
-		return this;
-	};
+	 if (!data) {
+	 $this.data('fu.tree', (data = new Tree(this, options)));
+	 }
+
+	 if (typeof option === 'string') {
+	 methodReturn = data[option].apply(data, args);
+	 }
+	 });
+
+	 return (methodReturn === undefined) ? $set : methodReturn;
+	 };*/
+
+	//$.fn.tree.Constructor = Tree;
+
+	/*$.fn.tree.noConflict = function () {
+	 $.fn.tree = old;
+	 return this;
+	 };*/
 
 
 	// NO DATA-API DUE TO NEED OF DATA-SOURCE
