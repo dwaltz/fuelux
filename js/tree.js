@@ -77,7 +77,6 @@
 			var treeData = $parent.data();
 
 			loader.removeClass('hide hidden'); // hide is deprecated
-			console.log(this.options);
 			this.options.dataSource(treeData ? treeData : {}, function (items) {
 				loader.addClass('hidden');
 
