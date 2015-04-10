@@ -180,6 +180,24 @@ module.exports = function (grunt) {
 				dest: 'dist/fuelux/',
 				expand: true,
 				src: ['**']
+			},
+			noConflictJS: {
+				src: 'dist/js/fuelux.js',
+				dest: 'dist/js/fueluxNoConflict.js',
+				options: {
+					//Building custom version of fuelux v3 to live next to fuelux v2
+					processContent: function (content, srcpath) {
+						content = content.replace(/\$.fn.+([^ ]* +)?(?=\.)|\$\.fn\.([a-z]*?)(?=;)|\$\.fn\.([a-z]*?)(?= =)/g, function(string){
+							return string + 'F3';
+						});
+
+						content = content.replace(/\.checkbox\(|\.combobox\(|\.datepicker\(|\.dropdownautoflip\(|\.loader\(|\.placard\(|\.radio\(|\.search\(|\.selectlist\(|\.spinbox\(|\.tree\(|\.wizard\(|\.infinitescroll\(|\.pillbox\(|\.repeater\(|\.repeaterlist\(|\.repeaterthumbnail\(|\.scheduler\(/g, function(string){
+							return string.replace('(','') + 'F3' + '(';
+						});
+
+						return content;
+					}
+				}
 			}
 		},
 		jsbeautifier: {
@@ -378,6 +396,9 @@ module.exports = function (grunt) {
 					from: /fuelux\/\d\.\d\.\d/g,
 					to: "fuelux/<%= pkg.version %>"
 				}]
+			},
+			noConflict: {
+
 			}
 		},
 		'saucelabs-qunit': {
